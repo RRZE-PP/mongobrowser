@@ -422,9 +422,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		if(curQuery === null)
 			return;
 
-		var origSkip = curQuery.origSkip || curQuery._skip;
+		var origSkip = curQuery.origSkip || curQuery._skip; //save skip-value, in case the user called .skip()
 
-		curQuery = this.state.currentQuery = curQuery.clone();
+		curQuery = curQuery.clone();
 		this.state.currentQuery.origSkip = origSkip;
 
 		curQuery.skip(origSkip + newStart);
