@@ -358,10 +358,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 	function windowMode(self, action){
 		if(action === "enter"){
-			self.rootElement.dialog({minWidth:642, minHeight:550});
+			self.rootElement.is(".ui-resizable") && self.rootElement.resizable("destroy");
+			self.rootElement.dialog({minWidth:642, minHeight:580});
 			self.uiElements.menuBar.find("[name='windowMode']").prop("checked", true);
+			//reset sideBar resizability because it gets lost somehow
+			self.uiElements.sideBar.parent().resizable("destroy");
+			self.uiElements.sideBar.parent().resizable({handles: "e", minWidth: 120});
 		}else if(action === "leave"){
 			self.rootElement.is(".ui-dialog-content") && self.rootElement.dialog("destroy");
+			self.rootElement.resizable({minWidth:642, minHeight:580});
 			self.uiElements.menuBar.find("[name='windowMode']").prop("checked", false);
 		}
 	}
