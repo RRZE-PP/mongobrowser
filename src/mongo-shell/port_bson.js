@@ -16,6 +16,8 @@ Object.bsonsize = function(){
 function NumberLong(){
 	if(arguments.length == 1 && typeof arguments[0] === "string")
 		return bson().Long.fromString(arguments[0]);
+	else if(arguments.length == 1 && typeof arguments[0] === "number")
+		return bson().Long.fromNumber(arguments[0]);
 	else
 		bson().Long.apply(this, arguments);
 }

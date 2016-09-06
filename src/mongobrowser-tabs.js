@@ -121,7 +121,6 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 		var startTime = $.now();
 
-		//TODO: this fails if we yield the js thread (e.g. in an asynchronous ajax call?) before finishing MongoNS.execute and resetting the print fct
 		var printedLines = []
 		var oldPrint = MongoNS.__namespacedPrint;
 		MongoNS.__namespacedPrint = function(line){
@@ -142,7 +141,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				this.uiElements.info.database.text(ret._db._name);
 				this.uiElements.info.collection.text(ret._collection._shortName);
 				this.uiElements.info.collection.parent().show();
-				ret = ret._exec()
+				ret = ret._exec();
 			}else{
 				this.uiElements.info.collection.parent().hide();
 			}
@@ -156,51 +155,56 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			MongoNS.__namespacedPrint(e.toString());
 		}
 
-		var duration = $.now() - startTime;
-		this.uiElements.info.time.text(duration/1000);
+		printExecutionResult(startTime, ret);
 
-		this.uiElements.printContainer.hide()
-		this.uiElements.resultsTable.hide();
-		this.uiElements.printedLines.text("");
-		this.uiElements.results.children().remove();
-		this.uiElements.iterate.start.val(0);
 
-		if(typeof ret !== "undefined" && ret !== null && typeof ret.__magicNoPrint === "undefined"){
-			this.uiElements.resultsTable.show();
+		function printExecutionResult(startTime, result){
+			var duration = $.now() - startTime;
+			self.uiElements.info.time.text(duration/1000);
 
-			if(ret instanceof MongoNS.Cursor){
-				printBatch(this, ret, parseInt(self.uiElements.iterate.max.val()));
-			}else{
-				this.state.displayedResult = [ret];
-				printLine(this, "", "(" + 1 + ")", ret, 0).attr("data-index", 0);
+			self.uiElements.printContainer.hide()
+			self.uiElements.resultsTable.hide();
+			self.uiElements.printedLines.text("");
+			self.uiElements.results.children().remove();
+			self.uiElements.iterate.start.val(0);
+
+			if(typeof result !== "undefined" && result !== null && typeof result.__magicNoPrint === "undefined"){
+				self.uiElements.resultsTable.show();
+
+				if(result instanceof MongoNS.Cursor){
+					printBatch(self, result, parseInt(self.uiElements.iterate.max.val()));
+				}else{
+					self.state.displayedResult = [result];
+					printLine(self, "", "(" + 1 + ")", result, 0).attr("data-index", 0);
+				}
+				if(self.options.expandFirstDoc)
+					self.uiElements.results.children().eq(0).trigger("dblclick"); //expand the first element
+				self.uiElements.results.children("[data-indent]").each(function(index, elem){
+					$(elem).children().eq(0).css("padding-left", parseInt($(elem).attr("data-indent"))*25+"px");
+				});
+
+			}else if(printedLines.length === 0){
+				printedLines.push("Script executed successfully but there is no output to display.")
 			}
-			if(this.options.expandFirstDoc)
-				this.uiElements.results.children().eq(0).trigger("dblclick"); //expand the first element
-			this.uiElements.results.children("[data-indent]").each(function(index, elem){
-				$(elem).children().eq(0).css("padding-left", parseInt($(elem).attr("data-indent"))*25+"px");
-			});
 
-		}else if(printedLines.length === 0){
-			printedLines.push("Script executed successfully but there is no output to display.")
-		}
+			if(printedLines.length !== 0){
+				self.uiElements.printContainer.show();
 
-		if(printedLines.length !== 0){
-			this.uiElements.printContainer.show();
-
-			var text = "";
-			for(var i=0; i < printedLines.length; i++){
-				text += printedLines[i] + "\n";
+				var text = "";
+				for(var i=0; i < printedLines.length; i++){
+					text += printedLines[i] + "\n";
+				}
+				self.uiElements.printedLines.text(text);
 			}
-			self.uiElements.printedLines.text(text);
+
+			self.uiElements.resultsTable.find("th").css("width", "");
+			self.uiElements.resultsTable.resizableColumns("destroy");
+			self.uiElements.resultsTable.prev(".resizableColumnsFix").remove();
+			self.uiElements.resultsTable.resizableColumns({minWidth: 15});
+			self.uiElements.resultsTable.prev().wrap($("<div class='resizableColumnsFix' style='width:0px;'></div>"))
+
+			self.setTitle(self.state.codeMirror.getDoc().getValue());
 		}
-
-		self.uiElements.resultsTable.find("th").css("width", "");
-		self.uiElements.resultsTable.resizableColumns("destroy");
-		self.uiElements.resultsTable.prev(".resizableColumnsFix").remove();
-		self.uiElements.resultsTable.resizableColumns({minWidth: 15});
-		self.uiElements.resultsTable.prev().wrap($("<div class='resizableColumnsFix' style='width:0px;'></div>"))
-
-		self.setTitle(this.state.codeMirror.getDoc().getValue());
 	}
 
 	/**
