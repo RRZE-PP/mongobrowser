@@ -44,7 +44,7 @@ var Connection = (function(){
 			throw new DatabaseConnectionError(jqXHR.responseJSON.error);
 
 		//we did not receive a valid JSON response => backend server broken?
-		throw new ServerConnectionError("An Error occured connecting to the backend: " + e.statusText);
+		throw new ServerConnectionError("An Error occured connecting to the backend: " + jqXHR.statusText);
 	}
 
 	/**
