@@ -24,8 +24,6 @@ function version(){
  */
 function execute(context, db, code) {
 
-	code = code.replace(/([0-9]+)L/g, "NumberLong($1)")
-
 	function evaluate(db, code, window, document){
 		return eval(code);
 	}
