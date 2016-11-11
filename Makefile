@@ -44,7 +44,7 @@ withDeps: assets mongoShell
 		./src/assets/lib/codemirror/addon/edit/matchbrackets.js \
 		./src/assets/lib/codemirror/addon/hint/show-hint.js \
 		./src/assets/lib/jquery-2.2.3.min.js \
-		./src/assets/lib/jquery-ui-1.11.4.custom/jquery-ui.min.js \
+		./src/assets/lib/jquery-ui-1.12.0.custom/jquery-ui.min.js \
 		./src/assets/lib/jquery-contextMenu/jquery.contextMenu.min.js \
 		./src/assets/lib/jquery-contextMenu/jquery.ui.position.min.js \
 		./src/assets/lib/jquery-resizable-columns/jquery.resizableColumns.js \
@@ -55,7 +55,7 @@ withDeps: assets mongoShell
 		grep -v "//# sourceMappingURL" > bin/mongobrowser-withDependencies.js
 
 	awk 'FNR==1{print ""}1' \
-		./src/assets/lib/jquery-ui-1.11.4.custom/jquery-ui.structure.min.css \
+		./src/assets/lib/jquery-ui-1.12.0.custom/jquery-ui.structure.min.css \
 		./src/assets/lib/jquery-contextMenu/jquery.contextMenu.min.css \
 		./src/assets/lib/jquery-resizable-columns/jquery.resizableColumns.css \
 		./src/assets/lib/codemirror/lib/codemirror.css \
