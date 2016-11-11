@@ -260,7 +260,21 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 						return;
 					}
 					try{
-						db.getCollection(collection).update({"_id": doc._id}, newObj);
+						var writeResult = db.getCollection(collection).update({"_id": doc._id}, newObj);
+
+						if(writeResult.nModified !== 1){
+							throw("Server claims " + writeResult.nModified + " elements were modified.");
+						}
+
+						var oldResultsView = getCurrentTab(self).state.displayedResult;
+						for(var i = 0; i < oldResultsView.length; i++){
+							if(oldResultsView[i]._id === doc._id){
+								oldResultsView[i] = newObj;
+								getCurrentTab(self).updateView();
+								getCurrentTab(self).uiElements.resultsTable.find("[data-indent=0]").eq(i).dblclick();
+								break;
+							}
+						}
 					}catch(e){
 						openDialog(self, "showMessage", "Could not insert document", e.toString(), "error");
 						return;

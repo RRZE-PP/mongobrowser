@@ -473,6 +473,23 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	}
 
 	/**
+	 * (Re-)Prints the results as stored in state.displayedResults. Can be used to update the view after the state was altered.
+	 */
+	ConnectionTab.prototype.updateView = function(){
+		this.uiElements.results.children().remove();
+
+		for(var i=0; i < this.state.displayedResult.length; i++){
+			var val = this.state.displayedResult[i];
+
+			var displayedKey = "(" + (i + 1) + ")";
+			if(val._id instanceof MongoNS.ObjectId)
+				displayedKey += " " + val._id.toString();
+			var lines = printLine(this, "", displayedKey, val, 0);
+			lines.attr("data-index", i);
+		}
+	}
+
+	/**
 	 * Creates new tabs. Each MongoBrowser should have its own factory to prevent collisions in the tab-ids
 	 * @class TabFactory
 	 *
