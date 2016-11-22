@@ -188,13 +188,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			}
 
 			if(printedLines.length !== 0){
-				self.uiElements.printContainer.show();
-
-				var text = "";
-				for(var i=0; i < printedLines.length; i++){
-					text += printedLines[i] + "\n";
-				}
-				self.uiElements.printedLines.text(text);
+				printText(self, printedLines);
 			}
 
 			self.uiElements.resultsTable.find("th").css("width", "");
@@ -218,16 +212,20 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		self.uiElements.results.children().remove();
 
 		self.state.displayedResult = [];
-		for(var i=0; i < count && cursor.more(); i++){
-			var val = cursor.next();
-			self.state.displayedResult.push(val);
-			var displayedKey = "(" + (i + 1) + ")";
-			if(val._id instanceof MongoNS.ObjectId)
-				displayedKey += " " + val._id.toString();
-			var lines = printLine(self, "", displayedKey, val, 0);
-			lines.attr("data-index", i);
+		try {
+			for(var i=0; i < count && cursor.more(); i++){
+				var val = cursor.next();
+				self.state.displayedResult.push(val);
+				var displayedKey = "(" + (i + 1) + ")";
+				if(val._id instanceof MongoNS.ObjectId)
+					displayedKey += " " + val._id.toString();
+				var lines = printLine(self, "", displayedKey, val, 0);
+				lines.attr("data-index", i);
+			}
+			self.state.currentCursor = cursor;
+		}catch(e) {
+			printText(self, e.toString());
 		}
-		self.state.currentCursor = cursor;
 	}
 
 	/**
@@ -350,6 +348,27 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			return printObject(key, displayedKey, val, indent);
 		else
 			return printUnsupported(key, displayedKey, val, indent); //should not happen
+	}
+
+	/**
+	 * Prints text to the result table.
+	 *
+	 * @param {ConnectionTab} self - as this is a private member <i>this</i> is passed as <i>self</i> explicitly
+	 * @param {string|string[]} text - the text to print or an array of strings, which will be interpreted as lines
+	 * @private
+	 * @memberof MongoBrowser(NS)~
+	 */
+	function printText(self, text){
+		self.uiElements.printContainer.show();
+
+		if(text instanceof Array){
+			var textString = "";
+			for(var i=0; i < text.length; i++){
+				textString += text[i] + "\n";
+			}
+			text = textString;
+		}
+		self.uiElements.printedLines.text(text);
 	}
 
 
