@@ -63,7 +63,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				for (var i=0; i<presets.length; i++) {
 					var p = presets[i];
 
-					var newLine = $("<tr data-connectionIndex='"+i+"'><td>"+p.name+"</td><td>"+p.host+":"+p.port+"</td><td> </td></tr>");
+					var newLine = $("<tr data-connectionIndex='"+i+"'><td>"+p.name+"</td> " +
+						             "<td>"+p.host+":"+p.port+"</td><td>" +
+						             (p.performAuth ? p.auth.adminDatabase + " / " + p.auth.username : "- - -" ) + "</td></tr>");
 					newLine.on("dblclick", (function(p){
 						return function(){
 							self.connect(p.host, p.port, "test");
