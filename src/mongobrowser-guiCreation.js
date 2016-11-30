@@ -781,11 +781,11 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 						            }},
 						"sep2": "---------",
 						copyJSON:  {name: "Copy JSON",
-						            //callback: copyJSONAndValue,
+						            callback: copyJSONAndValue,
 						            disabled: function(){return !$(this).hasClass("hasChildren")},
 						            },
 						copyValue: {name: "Copy Value",
-						            //callback: copyJSONAndValue,
+						            callback: copyJSONAndValue,
 						            disabled: function(){return $(this).hasClass("hasChildren")},
 						           },
 						delete:    {name: "Delete Document...",
@@ -806,7 +806,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					obj = obj[keyList[i]];
 				}
 
-				var elem = $("<p>").attr("data-clipboard-text", JSON.stringify(obj));
+				var elem = $("<p>").attr("data-clipboard-text", MongoNS.tojson(obj));
 
 				var c = new Clipboard(elem[0]);
 				elem.click(); c.destroy(); elem.remove(); //well that was quick :/
