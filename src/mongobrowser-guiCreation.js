@@ -97,7 +97,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					if(curLine.size() === 0)
 						return;
 					var idx = parseInt(curLine.attr("data-connectionIndex"));
-					var cloned = $.extend({}, self.state.connectionPresets[idx]);
+					var cloned = $.extend(true, {}, self.state.connectionPresets[idx]);
 					cloned.name = "Copy of " + cloned.name;
 					openDialog(self, "connectionSettings", cloned);
 			}
@@ -174,7 +174,14 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				var host = self.uiElements.dialogs.connectionSettings.find(".connectionHost").val();
 				var port = parseInt(self.uiElements.dialogs.connectionSettings.find(".connectionPort").val());
 
-				self.state.connectionPresets.push({name:name, host:host, port:port});
+				var adminDatabase = curDialog.find("[name=adminDatabase]").val();
+				var username = curDialog.find("[name=username]").val();
+				var password = curDialog.find("[name=password]").val();
+				var method = curDialog.find("[name=method]").val();
+				var performAuth = curDialog.find("[name=performAuth]").prop("checked");
+
+				self.state.connectionPresets.push({name:name, host:host, port:port, performAuth: performAuth,
+						auth: {adminDatabase: adminDatabase, username: username, password: password, method: method}});
 				self.uiElements.dialogs.connectionManager.initialise();
 			}
 
