@@ -67,11 +67,12 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					var newLine = $("<tr data-connectionIndex='"+i+"'><td>"+p.name+"</td> " +
 						             "<td>"+p.host+":"+p.port+"</td><td>" +
 						             (p.performAuth ? p.auth.adminDatabase + " / " + p.auth.username : "- - -" ) + "</td></tr>");
-					newLine.on("dblclick", (function(p){
+					newLine.on("dblclick", (function(newLine){
 						return function(){
-							self.connect(p.host, p.port, "test");
-							self.uiElements.dialogs.connectionManager.dialog("close")}
-						})(p));
+							newLine.click();
+							if(connectCurrentConnectionPreset())
+								self.uiElements.dialogs.connectionManager.dialog("close");
+						}})(newLine));
 					newLine.on("click", function(){table.children().removeClass("current"); $(this).addClass("current")});
 
 					table.append(newLine);
@@ -117,8 +118,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 						return;
 					var idx = parseInt(curLine.attr("data-connectionIndex"));
 					var preset= self.state.connectionPresets[idx];
-					self.connect(preset.host, preset.port, "test", //todo put correct database here
-						preset.performAuth, preset.auth.adminDatabase, preset.auth.username, preset.auth.password, preset.auth.method);
+					return self.connect(preset.host, preset.port, "test", //todo put correct database here
+						preset.performAuth, preset.auth.adminDatabase, preset.auth.username, preset.auth.password, preset.auth.method)
+
 			}
 
 			/**
@@ -446,7 +448,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 						},
 						{text: "Connect",
 						icons: {primary: "connectIcon"},
-						click: function(){connectCurrentConnectionPreset(); $(this).dialog("close");}}
+						click: function(){if(connectCurrentConnectionPreset()) $(this).dialog("close");}}
 					],
 					modal: true,
 					width: 'auto'

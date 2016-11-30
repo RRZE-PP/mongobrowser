@@ -422,6 +422,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @param {string} [username=] - the username to authenticate with
 	 * @param {string} [password=] - the password to authenticate with
 	 * @param {string} [method=scram-sha-1] - one of ["scram-sha-1", "mongodb-cr"]
+	 * @return {bool} true on success, false if no connection was established
 	 * @memberof MongoBrowser#
 	 */
 	function connect(self, hostname, port, database, performAuth, adminDatabase, username, password, method){
@@ -490,8 +491,10 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			}
 
 			self.uiElements.sideBar.append(serverItem);
+			return true;
 		}catch(e){
 			openDialog(self, "showMessage", "Could not connect", e.toString(), "error");
+			return false;
 		}
 	}
 
