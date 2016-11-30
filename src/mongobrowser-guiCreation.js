@@ -59,6 +59,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					presets = self.state.connectionPresets;
 
 				var table = this.find(".connectionsTable tbody");
+				var oldId = table.children(".current").attr("data-connectionIndex");
 				table.children().remove();
 				for (var i=0; i<presets.length; i++) {
 					var p = presets[i];
@@ -79,6 +80,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				if(presets.length < 3)
 					for (var i=0; i< 3 - presets.length; i++)
 						table.append($("<tr class='whitespace'><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>"));
+				if(oldId)
+					table.children().eq(oldId).click()
 			}
 
 			function editCurrentConnectionPreset(){
