@@ -671,10 +671,23 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			}
 
 			sideBar.delegate(".foldIcon", "click", function(evt){toggleCollapsed(evt.target.parentNode)});
-			sideBar.delegate("li", "click", function(evt){
+			sideBar.delegate("li, li > span, li > div", "click contextmenu", function(evt){
 				sideBar.find(".current").removeClass("current");
 				$(evt.target).closest("li").addClass("current");})
 			sideBar.parent().resizable({handles: "e", minWidth: 120});
+
+			sideBar.contextMenu({
+					className: "mongoBrowser",
+					selector: ".server > span, .server > div",
+					items: {
+						close: {
+							name: "Close this connection",
+							callback: function(){
+								self.closeConnection(self.rootElement.find(".server").index($(this).parent()))
+							}
+						}
+					}
+				})
 		}
 
 		/**
