@@ -137,6 +137,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @param {MongoBrowser} self - as this is a private member <i>this</i> is passed as <i>self</i> explicitly
 	 * @param {string} database - the database to operate on in this tab
 	 * @param {string} collection - the default collection in this tab
+	 * @return {string} the newly created tab's id
 	 * @private
 	 * @memberof MongoBrowser(NS)~
 	 */
@@ -147,6 +148,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			tab.execute();
 		tab.select();
 		self.state.tabs[tab.id()] = tab;
+		return tab.id();
 	}
 
 	/**
@@ -457,6 +459,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			serverItem.find(".listItem").text(hostname);
 			serverItem.append(databaseItems);
 
+			//here we will store all tab ids ever opened from this connection
+			mongo.openedTabs = []
+
 			for(var i=0; i<databases.length; i++){
 				var databaseName = databases[i];
 				var dbItem = listItem.clone().addClass("database");
@@ -484,7 +489,10 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					var collItem = listItem.clone().addClass("collection");
 					collItem.find(".listItem").text(collection);
 					collItem.on("dblclick", (function(mongo, databaseName, collection){
-						return function(){addTab(self, mongo.getDB(database), collection)};
+						return function(){
+							var newTabId = addTab(self, mongo.getDB(database), collection);
+							mongo.openedTabs.push(newTabId);
+						};
 					})(mongo, databaseName, collection));
 					collectionItems.append(collItem);
 				}
@@ -496,6 +504,23 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			openDialog(self, "showMessage", "Could not connect", e.toString(), "error");
 			return false;
 		}
+	}
+
+	/**
+	 * Closes the n-th connection in this' mongobrowsers state.connections. This corresponds to the n-th top-level
+	 * item in the sidebar,
+	 * @param {MongoBrowser} self  - Please see Class/Namespace description!
+	 * @param {number} connectionNumber - the index of the connection to close in state.connections or the sidebar
+	 * @memberof MongoBrowser#
+	 */
+	function closeConnection(self, connectionNumber){
+		var connection = self.state.connections[connectionNumber];
+		for(var i = 0; i < connection.openedTabs.length; i++){
+			var tabId = connection.openedTabs[i];
+			self.uiElements.tabs.container.find("[aria-controls='" + tabId + "']").find(".closeButton").click();
+		}
+		self.uiElements.sideBar.find(".server").eq(connectionNumber).remove();
+		self.state.connections.splice(connectionNumber);
 	}
 
 	function option(self, option, value){
@@ -520,6 +545,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	//Export MongoBrowser API
 	MongoBrowser.prototype.addConnectionPreset = function(){Array.prototype.unshift.call(arguments, this); return addConnectionPreset.apply(this, arguments)};
 	MongoBrowser.prototype.connect             = function(){Array.prototype.unshift.call(arguments, this); return connect.apply(this, arguments)};
+	MongoBrowser.prototype.closeConnection     = function(){Array.prototype.unshift.call(arguments, this); return closeConnection.apply(this, arguments)};
 	MongoBrowser.prototype.option              = function(){Array.prototype.unshift.call(arguments, this); return option.apply(this, arguments)};
 
 	//Import dependencies
