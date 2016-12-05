@@ -33,6 +33,9 @@
 		display: none;
 
 		min-width: 250px;
+		margin-top: 0px;
+		padding-left: 0px;
+		list-style: none;
 		border-style: solid;
 		border-color: #aaaaaa;
 		border-width: 0px 1px 1px;
