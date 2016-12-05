@@ -173,6 +173,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 				if(result instanceof MongoNS.Cursor){
 					printBatch(self, result, parseInt(self.uiElements.iterate.max.val()));
+				}else if(result instanceof MongoNS.DBCommandCursor){
+					printBatch(self, result, result.objsLeftInBatch());
 				}else{
 					self.state.displayedResult = [result];
 					printLine(self, "", "(" + 1 + ")", result, 0).attr("data-index", 0);
@@ -213,7 +215,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 		self.state.displayedResult = [];
 		try {
-			for(var i=0; i < count && cursor.more(); i++){
+			for(var i=0; i < count && cursor.hasNext(); i++){
 				var val = cursor.next();
 				self.state.displayedResult.push(val);
 				var displayedKey = "(" + (i + 1) + ")";
