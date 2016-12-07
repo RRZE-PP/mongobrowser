@@ -67,6 +67,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					var newLine = $("<tr data-connectionIndex='"+i+"'><td>"+p.name+"</td> " +
 						             "<td>"+p.host+":"+p.port+"</td><td>" +
 						             (p.performAuth ? p.auth.adminDatabase + " / " + p.auth.username : "- - -" ) + "</td></tr>");
+					if(!(typeof p.auth.connectionId === "undefined" || p.auth.connectionId === null)){
+						newLine.attr("data-locked", "locked");
+					}
 					newLine.on("dblclick", (function(newLine){
 						return function(){
 							newLine.click();
@@ -89,6 +92,11 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					var curLine = self.uiElements.dialogs.connectionManager.find(".current");
 					if(curLine.size() === 0)
 						return;
+					if(curLine.attr("data-locked") === "locked"){
+						openDialog(self, "showMessage", "Connection is locked",
+						           "This is a default connection with hidden password, you can't edit it. Please clone it first.", "error");
+						return;
+					}
 					var idx = parseInt(curLine.attr("data-connectionIndex"));
 					openDialog(self, "connectionSettings", idx)
 			}
@@ -101,6 +109,11 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					var cloned = $.extend(true, {}, self.state.connectionPresets[idx]);
 					cloned.name = "Copy of " + cloned.name;
 					openDialog(self, "connectionSettings", cloned);
+					if(curLine.attr("data-locked") === "locked"){
+						cloned.auth.connectionId = null;
+						openDialog(self, "showMessage", "Password unknown",
+						            "The password could not be cloned as it is stored secretly on the server! Please put it in manually!", "error");
+					}
 			}
 
 			function removeCurrentConnectionPreset(){
