@@ -190,6 +190,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				var host = self.uiElements.dialogs.connectionSettings.find(".connectionHost").val();
 				var port = parseInt(self.uiElements.dialogs.connectionSettings.find(".connectionPort").val());
 
+				var curDialog = self.uiElements.dialogs.connectionSettings;
+
 				var adminDatabase = curDialog.find("[name=adminDatabase]").val();
 				var username = curDialog.find("[name=username]").val();
 				var password = curDialog.find("[name=password]").val();
@@ -207,7 +209,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					return;
 				var idx = parseInt(curLine.attr("data-connectionIndex"));
 
-				var curDialog = self.uiElements.dialogs.connectionSettings
+				var curDialog = self.uiElements.dialogs.connectionSettings;
 
 				var name = curDialog.find(".connectionName").val();
 				var host = curDialog.find(".connectionHost").val();
