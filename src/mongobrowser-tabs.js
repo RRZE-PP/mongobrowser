@@ -120,14 +120,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		var self = this;
 
 		var startTime = $.now();
-		var code = this.state.codeMirror.getDoc().getValue();
-
-
 		var printedLines = []
-		var oldPrint = MongoNS.__namespacedPrint;
-		MongoNS.__namespacedPrint = function(line){
-			printedLines.push(line);
-		}
+		var code = this.state.codeMirror.getDoc().getValue();
 
 		//handle special cases
 		var isUseCommand = code.match(/^ *use +([^$. ][^. ]*)$/)
@@ -161,12 +155,12 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				}
 
 				if(ret instanceof MongoNS.WriteResult){
-					MongoNS.__namespacedPrint(ret.toString());
+					printedLines.push(ret.toString());
 					ret.__magicNoPrint = 1;
 				}
 			}catch(e){
 				var ret = undefined;
-				MongoNS.__namespacedPrint(e.toString());
+				printedLines.push(e.toString());
 			}
 		}
 
