@@ -120,6 +120,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		var self = this;
 
 		var startTime = $.now();
+		var code = this.state.codeMirror.getDoc().getValue();
+
 
 		var printedLines = []
 		var oldPrint = MongoNS.__namespacedPrint;
@@ -127,32 +129,45 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			printedLines.push(line);
 		}
 
-		try {
-			this.state.currentCursor = null;
-			this.state.currentQuery = null;
+		//handle special cases
+		var isUseCommand = code.match(/^ *use +([^$. ][^. ]*)$/)
+		if(isUseCommand != null){
+			//use db
+			var newDb = isUseCommand[1];
+			code = "db = db.getSiblingDB('" + newDb.replace("'", "\'") + "')";
+			printedLines.push("Switched to db " + newDb);
+			this.state.db = MongoNS.execute(MongoNS, this.state.db, code);
 
-			var ret = MongoNS.execute(MongoNS, this.state.db, this.state.codeMirror.getDoc().getValue());
+			var ret = {__magicNoPrint: true};
+		}else{
+			//execute code as given
+			try {
+				this.state.currentCursor = null;
+				this.state.currentQuery = null;
 
-			if(ret instanceof MongoNS.DBQuery){
-				this.state.collection = ret._collection._shortName;
-				this.state.db = ret._db;
-				this.state.currentQuery = ret;
+				var ret = MongoNS.execute(MongoNS, this.state.db, code);
 
-				this.uiElements.info.database.text(ret._db._name);
-				this.uiElements.info.collection.text(ret._collection._shortName);
-				this.uiElements.info.collection.parent().show();
-				ret = ret._exec();
-			}else{
-				this.uiElements.info.collection.parent().hide();
+				if(ret instanceof MongoNS.DBQuery){
+					this.state.collection = ret._collection._shortName;
+					this.state.db = ret._db;
+					this.state.currentQuery = ret;
+
+					this.uiElements.info.database.text(ret._db._name);
+					this.uiElements.info.collection.text(ret._collection._shortName);
+					this.uiElements.info.collection.parent().show();
+					ret = ret._exec();
+				}else{
+					this.uiElements.info.collection.parent().hide();
+				}
+
+				if(ret instanceof MongoNS.WriteResult){
+					MongoNS.__namespacedPrint(ret.toString());
+					ret.__magicNoPrint = 1;
+				}
+			}catch(e){
+				var ret = undefined;
+				MongoNS.__namespacedPrint(e.toString());
 			}
-
-			if(ret instanceof MongoNS.WriteResult){
-				MongoNS.__namespacedPrint(ret.toString());
-				ret.__magicNoPrint = 1;
-			}
-		}catch(e){
-			var ret = undefined;
-			MongoNS.__namespacedPrint(e.toString());
 		}
 
 		printExecutionResult(startTime, ret);
