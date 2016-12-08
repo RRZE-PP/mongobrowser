@@ -507,7 +507,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					collItem.find(".listItem").text(collection);
 					collItem.on("dblclick", (function(mongo, databaseName, collection){
 						return function(){
-							var newTabId = addTab(self, mongo.getDB(database), collection);
+							var newTabId = addTab(self, mongo.getDB(databaseName), collection);
 							mongo.openedTabs.push(newTabId);
 						};
 					})(mongo, databaseName, collection));
