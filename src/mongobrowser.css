@@ -586,6 +586,10 @@
 		font-size:15px;
 	}
 
+	.mongoBrowser li.collection .foldIcon::before {
+		visibility: hidden;
+	}
+
 	.mongoBrowser textarea.userInput,
 	.mongoBrowser textarea.userInput ~ .CodeMirror {
 		border:none;
