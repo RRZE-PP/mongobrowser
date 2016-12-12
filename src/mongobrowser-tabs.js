@@ -314,6 +314,10 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			return base_print(indent, "bson_datetime_16x16.png", "date", displayedKey, val.toString(), "Date", false, key);
 		}
 
+		function printTimestamp(key, displayedKey, val, indent){
+			return base_print(indent, "bson_datetime_16x16.png", "timestamp", displayedKey, val.toDateString(), "Timestamp", false, key);
+		}
+
 		function printString(key, displayedKey, val, indent) {
 			return base_print(indent, "bson_string_16x16.png", "string", displayedKey, val, "String", false, key);
 		}
@@ -356,6 +360,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			return printRegExp(key, displayedKey, val, indent);
 		else if(val instanceof Date)
 			return printDate(key, displayedKey, val, indent);
+		else if(val instanceof MongoNS.Timestamp)
+			return printTimestamp(key, displayedKey, val, indent);
 		else if(typeof val === "string" || val instanceof String)
 			return printString(key, displayedKey, val, indent);
 		else if((typeof val === "number" || val instanceof Number) && parseInt(val) === val)
