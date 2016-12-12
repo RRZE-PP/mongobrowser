@@ -460,7 +460,12 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			self.state.connections.push(db.getMongo());
 
 			var mongo = db.getMongo();
-			var databases = mongo.getDBNames();
+			try {
+				var databases = mongo.getDBNames();
+			}catch(e){
+				// we probably do not have permissions to do this. continue with only the database we authenticated upon
+				var databases = [db];
+			}
 			var listItem = $('<li class="collapsed"><span class="foldIcon">&nbsp;</span><span class="icon">&nbsp;</span><span class="listItem"></span><div class="selectionIndicator"></div></li>');
 
 			var serverItem = listItem.clone().addClass("server");
