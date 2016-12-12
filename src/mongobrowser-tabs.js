@@ -29,7 +29,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		var tab = this.uiElements.tab = dummyTab.clone();
 		var id = prefix+"_"+ConnectionTab.instances++;
 		var connection = database.getMongo().host.substr(0, database.getMongo().host.indexOf("/"));
-		var defaultPrompt = "db.getCollection(\""+collection+"\").find({})";
+		var defaultPrompt = "db.getCollection(\"" + collection.replace("\\", "\\\\").replace("\"", "\\\"") + "\").find({})";
 
 		link.find("a").attr("href", "#"+id);
 		tab.attr('id', id);
@@ -265,14 +265,14 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 */
 	function printLine(self, key, displayedKey, val, indent) {
 		function base_print(indent, image, alt, col1, col2, col3, hasChildren, key) {
-			var newLine = $("<tr data-indent='" + indent + "' data-key='" + key + "' class='collapsed " + (hasChildren ? "hasChildren" : "") + "' \
+			var newLine = $("<tr data-indent='" + indent + "' class='collapsed " + (hasChildren ? "hasChildren" : "") + "' \
 				style='"+ (indent > 0 ? "display:none" : "") + "'> \
 				<td><span class='foldIcon'>&nbsp;</span> \
-					<img src='" + self.options.assetPrefix + "assets/images/" + image + "' class='typeIcon' alt='" + alt + "' /> " +
-					col1 +
-				"</td> \
-				<td>" + col2 + "</td> \
-				<td>" + col3 + "</td></tr>");
+					<img src='" + self.options.assetPrefix + "assets/images/" + image + "' class='typeIcon' alt='" + alt + "' /> <span></span></td> \
+				<td></td> \
+				<td></td></tr>")
+			newLine.children().eq(2).text(col3).prev().text(col2).prev().children().eq(2).text(col1);
+			newLine.attr("data-key", key);
 			newLine.appendTo(self.uiElements.results);
 			return newLine;
 		}

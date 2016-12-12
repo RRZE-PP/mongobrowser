@@ -64,9 +64,11 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				for (var i=0; i<presets.length; i++) {
 					var p = presets[i];
 
-					var newLine = $("<tr data-connectionIndex='"+i+"'><td>"+p.name+"</td> " +
-						             "<td>"+p.host+":"+p.port+"</td><td>" +
-						             (p.performAuth ? p.auth.adminDatabase + " / " + p.auth.username : "- - -" ) + "</td></tr>");
+					var newLine = $("<tr data-connectionIndex='" + i + "'><td></td><td></td><td></td></tr>");
+					newLine.children()
+						.eq(0).text(p.name)
+						.next().text(p.host + ":" + p.port)
+						.next().text(p.performAuth ? p.auth.adminDatabase + " / " + p.auth.username : "- - -" )
 					if(!(typeof p.auth.connectionId === "undefined" || p.auth.connectionId === null)){
 						newLine.attr("data-locked", "locked");
 					}
