@@ -243,7 +243,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 				var displayedKey = "(" + (i + 1) + ")";
 				if(val._id instanceof MongoNS.ObjectId)
 					displayedKey += " " + val._id.toString();
-				var lines = printLine(self, "", displayedKey, val, 0);
+				var lines = printDocument(self, "", displayedKey, val, 0);
 				lines.attr("data-index", i);
 			}
 			self.state.currentCursor = cursor;
@@ -253,7 +253,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	}
 
 	/**
-	 * Prints a line to the results table. A line represents an object or primitive object.
+	 * Prints a document to the results table. A document represents an object or primitive object.
 	 *
 	 * @param {ConnectionTab} self - as this is a private member <i>this</i> is passed as <i>self</i> explicitly
 	 * @param {string} key - the key in the parent object or array
@@ -263,121 +263,130 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @private
 	 * @memberof MongoBrowser(NS)~
 	 */
-	function printLine(self, key, displayedKey, val, indent) {
-		function base_print(indent, image, alt, col1, col2, col3, hasChildren, key) {
-			var newLine = $("<tr data-indent='" + indent + "' class='collapsed " + (hasChildren ? "hasChildren" : "") + "' \
-				style='"+ (indent > 0 ? "display:none" : "") + "'> \
-				<td><span class='foldIcon'>&nbsp;</span> \
-					<img src='" + self.options.assetPrefix + "assets/images/" + image + "' class='typeIcon' alt='" + alt + "' /> <span></span></td> \
-				<td></td> \
-				<td></td></tr>")
-			newLine.children().eq(2).text(col3).prev().text(col2).prev().children().eq(2).text(col1);
-			newLine.attr("data-key", key);
-			newLine.appendTo(self.uiElements.results);
-			return newLine;
-		}
 
-		function printObject(key, displayedKey, val, indent) {
-			var keys = Object.keys(val);
+	function printDocument(self, key, displayedKey, val, indent) {
+		//create string because creating dom elements is really slow for huge data sets
+		var lineString = createLine(self, key, displayedKey, val, indent);
+		var lineDOM = $(lineString);
+		lineDOM.appendTo(self.uiElements.resultsTable);
+		return lineDOM;
 
-			var ret = base_print(indent, "bson_object_16x16.png", "object", displayedKey, "{ " + keys.length + " fields }", "Object", keys.length !== 0, key);
-
-			for(var i=0; i<keys.length; i++){
-				var newLine = printLine(self, keys[i], keys[i], val[keys[i]], indent + 1);
-				ret = ret.add(newLine);
-			}
-			return ret;
-		}
-
-		function printArray(key, displayedKey, val, indent) {
-			var keys = Object.keys(val);
-
-			var ret = base_print(indent, "bson_array_16x16.png", "array", displayedKey, "[ " + val.length + " Elements ]", "Array", keys.length !== 0, key);
-
-			for(var i=0; i<keys.length; i++){
-				var newLine = printLine(self, keys[i], "[" + keys[i] + "]", val[keys[i]], indent + 1);
-				ret = ret.add(newLine);
+		function createLine(self, key, displayedKey, val, indent) {
+			function base_print(indent, image, alt, col1, col2, col3, hasChildren, key) {
+				var newLine = "<tr data-indent='" + indent + "' \
+									data-key='" + key.replace("'", "&#39;") + "' \
+									class='collapsed " + (hasChildren ? "hasChildren" : "") + "' \
+					style='"+ (indent > 0 ? "display:none" : "") + "'> \
+					<td><span class='foldIcon'>&nbsp;</span> \
+						<img src='" + self.options.assetPrefix + "assets/images/" + image + "' \
+							class='typeIcon' alt='" + alt + "' /> " + col1.replace("<", "&lt") + "</td> \
+					<td>" + col2.toString().replace("<", "&lt;") + "</td> \
+					<td>" + col3.toString().replace("<", "&lt;") + "</td></tr>";
+				return newLine;
 			}
 
-			return ret;
-		}
+			function printObject(key, displayedKey, val, indent) {
+				var keys = Object.keys(val);
 
-		function printObjectId(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_unsupported_16x16.png", "oid", displayedKey, val.toString(), "ObjectId", false, key);
-		}
+				var ret = base_print(indent, "bson_object_16x16.png", "object", displayedKey, "{ " + keys.length + " fields }", "Object", keys.length !== 0, key);
 
-		function printRegExp(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_unsupported_16x16.png", "regex", displayedKey, val.toString(), "Regular Expression", false, key);
-		}
+				for(var i=0; i<keys.length; i++){
+					var newLine = createLine(self, keys[i], keys[i], val[keys[i]], indent + 1);
+					ret = ret + newLine;
+				}
+				return ret;
+			}
 
-		function printDate(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_datetime_16x16.png", "date", displayedKey, val.toString(), "Date", false, key);
-		}
+			function printArray(key, displayedKey, val, indent) {
+				var keys = Object.keys(val);
 
-		function printTimestamp(key, displayedKey, val, indent){
-			return base_print(indent, "bson_datetime_16x16.png", "timestamp", displayedKey, val.toDateString(), "Timestamp", false, key);
-		}
+				var ret = base_print(indent, "bson_array_16x16.png", "array", displayedKey, "[ " + val.length + " Elements ]", "Array", keys.length !== 0, key);
 
-		function printString(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_string_16x16.png", "string", displayedKey, val, "String", false, key);
-		}
+				for(var i=0; i<keys.length; i++){
+					var newLine = createLine(self, keys[i], "[" + keys[i] + "]", val[keys[i]], indent + 1);
+					ret = ret + newLine;
+				}
 
-		function printDouble(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_double_16x16.png", "double", displayedKey, val, "Double", false, key);
-		}
+				return ret;
+			}
 
-		function printInt(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_integer_16x16.png", "int", displayedKey, val, "Int32", false, key);
-		}
+			function printObjectId(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_unsupported_16x16.png", "oid", displayedKey, val.toString(), "ObjectId", false, key);
+			}
 
-		function printLong(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_integer_16x16.png", "long", displayedKey, val.toString(), "Int64", false, key);
-		}
+			function printRegExp(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_unsupported_16x16.png", "regex", displayedKey, val.toString(), "Regular Expression", false, key);
+			}
 
-		function printBoolean(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_bool_16x16.png", "boolean", displayedKey, val, "Boolean", false, key);
-		}
+			function printDate(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_datetime_16x16.png", "date", displayedKey, val.toString(), "Date", false, key);
+			}
 
-		function printNull(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_null_16x16.png", "null", displayedKey, "null", "Null", false, key);
-		}
+			function printTimestamp(key, displayedKey, val, indent){
+				return base_print(indent, "bson_datetime_16x16.png", "timestamp", displayedKey, val.toDateString(), "Timestamp", false, key);
+			}
 
-		function printUndefined(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_unsupported_16x16.png", "undefined", displayedKey, "undefined", "Undefined", false, key);
-		}
+			function printString(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_string_16x16.png", "string", displayedKey, val, "String", false, key);
+			}
 
-		function printUnsupported(key, displayedKey, val, indent) {
-			return base_print(indent, "bson_unsupported_16x16.png", "unsupported", displayedKey, "", "unsupported", false, key);
-		}
+			function printDouble(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_double_16x16.png", "double", displayedKey, val, "Double", false, key);
+			}
 
-		if(val instanceof Array)
-			return printArray(key, displayedKey, val, indent);
-		else if(val instanceof MongoNS.ObjectId)
-			return printObjectId(key, displayedKey, val, indent);
-		else if(val instanceof MongoNS.NumberLong)
-			return printLong(key, displayedKey, val, indent);
-		else if(val instanceof RegExp)
-			return printRegExp(key, displayedKey, val, indent);
-		else if(val instanceof Date)
-			return printDate(key, displayedKey, val, indent);
-		else if(val instanceof MongoNS.Timestamp)
-			return printTimestamp(key, displayedKey, val, indent);
-		else if(typeof val === "string" || val instanceof String)
-			return printString(key, displayedKey, val, indent);
-		else if((typeof val === "number" || val instanceof Number) && parseInt(val) === val)
-			return printInt(key, displayedKey, val, indent);
-		else if(typeof val === "number" || val instanceof Number)
-			return printDouble(key, displayedKey, val, indent);
-		else if(typeof val === "boolean")
-			return printBoolean(key, displayedKey, val, indent);
-		else if(val === null) //TODO: Int vs Double!
-			return printNull(key, displayedKey, val, indent);
-		else if(typeof val === "undefined")
-			return printUndefined(key, displayedKey, val, indent);
-		else if(typeof val === "object") //this comes last after all others have been ruled out
-			return printObject(key, displayedKey, val, indent);
-		else
-			return printUnsupported(key, displayedKey, val, indent); //should not happen
+			function printInt(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_integer_16x16.png", "int", displayedKey, val, "Int32", false, key);
+			}
+
+			function printLong(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_integer_16x16.png", "long", displayedKey, val.toString(), "Int64", false, key);
+			}
+
+			function printBoolean(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_bool_16x16.png", "boolean", displayedKey, val, "Boolean", false, key);
+			}
+
+			function printNull(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_null_16x16.png", "null", displayedKey, "null", "Null", false, key);
+			}
+
+			function printUndefined(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_unsupported_16x16.png", "undefined", displayedKey, "undefined", "Undefined", false, key);
+			}
+
+			function printUnsupported(key, displayedKey, val, indent) {
+				return base_print(indent, "bson_unsupported_16x16.png", "unsupported", displayedKey, "", "unsupported", false, key);
+			}
+
+			if(val instanceof Array)
+				return printArray(key, displayedKey, val, indent);
+			else if(val instanceof MongoNS.ObjectId)
+				return printObjectId(key, displayedKey, val, indent);
+			else if(val instanceof MongoNS.NumberLong)
+				return printLong(key, displayedKey, val, indent);
+			else if(val instanceof RegExp)
+				return printRegExp(key, displayedKey, val, indent);
+			else if(val instanceof Date)
+				return printDate(key, displayedKey, val, indent);
+			else if(val instanceof MongoNS.Timestamp)
+				return printTimestamp(key, displayedKey, val, indent);
+			else if(typeof val === "string" || val instanceof String)
+				return printString(key, displayedKey, val, indent);
+			else if((typeof val === "number" || val instanceof Number) && parseInt(val) === val)
+				return printInt(key, displayedKey, val, indent);
+			else if(typeof val === "number" || val instanceof Number)
+				return printDouble(key, displayedKey, val, indent);
+			else if(typeof val === "boolean")
+				return printBoolean(key, displayedKey, val, indent);
+			else if(val === null) //TODO: Int vs Double!
+				return printNull(key, displayedKey, val, indent);
+			else if(typeof val === "undefined")
+				return printUndefined(key, displayedKey, val, indent);
+			else if(typeof val === "object") //this comes last after all others have been ruled out
+				return printObject(key, displayedKey, val, indent);
+			else
+				return printUnsupported(key, displayedKey, val, indent); //should not happen
+		}
 	}
 
 	/**
