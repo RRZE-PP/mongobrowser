@@ -18,12 +18,12 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @param {JQuery} dummyTab - a jQuery wrapped <tt>HTMLElement</tt> to append as tab content
 	 * @param {MongoNS.DB} database - the database to which db should equate in this tab
 	 * @param {string} collection - the default collection to use
-	 * @param {MongoBrowser~options} options - the default options which were passed to the instantiating mongobrowser
+	 * @param {MongoBrowser} options - the instantiating mongobrowser
 	 */
-	function ConnectionTab(prefix, dummyLink, dummyTab, database, collection, options){
+	function ConnectionTab(prefix, dummyLink, dummyTab, database, collection, mongoBrowser){
 		this.uiElements = {};
 		this.state = {};
-		this.options = options;
+		this.options = mongoBrowser.options;
 
 		var link = this.uiElements.link = dummyLink.clone();
 		var tab = this.uiElements.tab = dummyTab.clone();
@@ -81,6 +81,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		this.state.collection = collection;
 		this.state.displayedResult = [];
 		this.state.codeMirror = codeMirror;
+		this.state.mongoBrowser = mongoBrowser;
 
 	}
 
@@ -237,7 +238,9 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 		self.state.displayedResult = [];
 		try {
-			for(var i=0; i < count && cursor.hasNext(); i++){
+			var t0 = performance.now();
+			var totalLines = 0;
+	 		for(var i=0; i < count && cursor.hasNext(); i++){
 				var val = cursor.next();
 				self.state.displayedResult.push(val);
 				var displayedKey = "(" + (i + 1) + ")";
@@ -245,6 +248,17 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 					displayedKey += " " + val._id.toString();
 				var lines = printDocument(self, "", displayedKey, val, 0);
 				lines.attr("data-index", i);
+				totalLines += lines.size()
+
+				var t1 = performance.now();
+
+				if(t1 - t0 > 500 * (i+1) || totalLines/(i+1) > 12000) {
+					self.state.mongoBrowser.openDialog("showMessage", "Warning", "The documents contain an unusual amount of properties. This results in \
+						performance problems and possibly errors. Therefore only " + (i + 1) + " documents were printed, even though more might have \
+						been fetched." , "error");
+					self.uiElements.iterate.max.val(i + 1);
+					break;
+				}
 			}
 			self.state.currentCursor = cursor;
 		}catch(e) {
@@ -554,13 +568,13 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @param {JQuery} dummyLink - a jQuery wrapped <tt>HTMLElement</tt> (LI) to append as tab handle. Must
 	 *                             contain a .tabText to put the tab title in
 	 * @param {JQuery} dummyTab - a jQuery wrapped <tt>HTMLElement</tt> to append as tab content
-	 * @param {MongoBrowser~options} options - the default options which were passed to the instantiating mongobrowser
+	 * @param {MongoBrowser~options} options - the instantiating mongobrowser
 	 */
-	function TabFactory(dummyLink, dummyTab, options){
+	function TabFactory(dummyLink, dummyTab, mongoBrowser){
 		this.prefix = "tabs"+TabFactory.instances++;
 		this.dummyLink = dummyLink;
 		this.dummyTab = dummyTab;
-		this.options = options;
+		this.mongoBrowser = mongoBrowser;
 	}
 
 	/** The total number of factories created to savely create unique IDs
@@ -580,7 +594,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @returns {ConnectionTab} the constructed ConnectionTab
 	 */
 	TabFactory.prototype.newTab = function(database, collection){
-		return new ConnectionTab(this.prefix, this.dummyLink, this.dummyTab, database, collection, this.options);
+		return new ConnectionTab(this.prefix, this.dummyLink, this.dummyTab, database, collection, this.mongoBrowser);
 	}
 
 

@@ -720,7 +720,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			var dummyTab = container.children("div").eq(0);
 			var dummyLink = container.find("li").eq(0);
 
-			self.state.tabFactory = new TabFactory(dummyLink.clone().css("display", ""), dummyTab.clone().css("display", ""), self.options);
+			self.state.tabFactory = new TabFactory(dummyLink.clone().css("display", ""), dummyTab.clone().css("display", ""), self);
 
 			dummyLink.remove();
 			dummyTab.remove();

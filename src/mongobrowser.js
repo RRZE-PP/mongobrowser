@@ -569,6 +569,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	MongoBrowser.prototype.connect             = function(){Array.prototype.unshift.call(arguments, this); return connect.apply(this, arguments)};
 	MongoBrowser.prototype.closeConnection     = function(){Array.prototype.unshift.call(arguments, this); return closeConnection.apply(this, arguments)};
 	MongoBrowser.prototype.option              = function(){Array.prototype.unshift.call(arguments, this); return option.apply(this, arguments)};
+	MongoBrowser.prototype.openDialog          = function(){Array.prototype.unshift.call(arguments, this); return openDialog.apply(this, arguments)};
 
 	//Import dependencies
 	if(typeof MongoBrowserNS === "undefined")
