@@ -394,6 +394,17 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
+							},
+						"duplicate": {
+								name: "Duplicate Collection",
+								callback: (function(collection){
+									return function(){
+										var newName = prompt("Please enter a name for the new collection:");
+										if(newName){
+											collection.copyTo(newName);
+										}
+									}
+								})(mongo.getDB(databaseName).getCollection(collection))
 							}
 						}
 					})
