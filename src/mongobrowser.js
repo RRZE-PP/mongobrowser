@@ -543,7 +543,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			self.uiElements.tabs.container.find("[aria-controls='" + tabId + "']").find(".closeButton").click();
 		}
 		self.uiElements.sideBar.find(".server").eq(connectionNumber).remove();
-		self.state.connections.splice(connectionNumber);
+		self.state.connections.splice(connectionNumber, 1);
 	}
 
 	function option(self, option, value){
