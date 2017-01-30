@@ -423,6 +423,25 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 						}
 					})
 				collectionItems.append(collItem);
+
+				collectionsFolder.contextMenu({
+					className: "mongoBrowser",
+					selector: "> span",
+					items: {
+						"insertcollection": {
+							name: "Insert Collection",
+							callback: (function(db){
+								return function(){
+									var newName = prompt("Please enter a name for the new collection:");
+									if(newName){
+										db.createCollection(newName);
+										refreshConnection(self, connectionNumber);
+									}
+								}
+							})(mongo.getDB(databaseName))
+						}
+					}
+				})
 			}
 		}
 
