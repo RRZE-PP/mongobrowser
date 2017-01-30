@@ -405,6 +405,17 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
+							},
+						"rename": {
+								name: "Rename Collection",
+								callback: (function(collection){
+									return function(){
+										var newName = prompt("Please enter a new name for the collection:");
+										if(newName){
+											collection.renameCollection(newName);
+										}
+									}
+								})(mongo.getDB(databaseName).getCollection(collection))
 							}
 						}
 					})
