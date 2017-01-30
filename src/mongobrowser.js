@@ -419,6 +419,18 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
+							},
+						"sep1": "---------",
+						"statistics": {
+								name: "Statistics",
+								callback: (function(mongo, databaseName, collection){
+									return function(){
+										var newTabId = addTab(self, mongo.getDB(databaseName), collection);
+										info.openedTabs.push(newTabId);
+										self.state.tabs[newTabId].setPrompt("db.getCollection(\""+ collection +"\").stats()");
+										self.state.tabs[newTabId].execute();
+									}
+								})(mongo, databaseName, collection)
 							}
 						}
 					})
