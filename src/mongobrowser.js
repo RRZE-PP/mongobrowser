@@ -478,7 +478,8 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 			databaseItems.append(systemItem);
 
-			serverItem.find(".listItem").text(hostname);
+			var serverText = username + (username !== ""?"@" : "") + hostname + " (" + database + ")";
+			serverItem.find(".listItem").text(serverText);
 			serverItem.append(databaseItems);
 
 			//here we will store all tab ids ever opened from this connection
