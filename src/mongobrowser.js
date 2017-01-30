@@ -391,6 +391,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 									return function(){
 										if(confirm("Do you really want to drop collection " + collection + "?")){
 											collection.drop();
+											refreshConnection(self, connectionNumber);
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
@@ -402,6 +403,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										var newName = prompt("Please enter a name for the new collection:");
 										if(newName){
 											collection.copyTo(newName);
+											refreshConnection(self, connectionNumber);
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
@@ -413,6 +415,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										var newName = prompt("Please enter a new name for the collection:");
 										if(newName){
 											collection.renameCollection(newName);
+											refreshConnection(self, connectionNumber);
 										}
 									}
 								})(mongo.getDB(databaseName).getCollection(collection))
@@ -424,7 +427,17 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 		}
 
 
-		self.uiElements.sideBar.find(".server").eq(connectionNumber).replaceWith(serverItem);
+		var oldServer = self.uiElements.sideBar.find(".server").eq(connectionNumber);
+		oldServer.find(".opened > .listItem").each((function(serverItem){
+			return function(index, item){
+				serverItem.find(".listItem:contains('" + item.innerText + "')").parent().addClass("opened").removeClass("collapsed");
+			}
+		})(serverItem));
+
+		if(oldServer.hasClass("opened"))
+			serverItem.addClass("opened").removeClass("collapsed");
+
+		oldServer.replaceWith(serverItem);
 	}
 
 	/**
