@@ -457,71 +457,19 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 			}else{
 				var db = MongoNS.simple_connect(hostname, port, database);
 			}
-			self.state.connections.push(db.getMongo());
 
 			var mongo = db.getMongo();
-			try {
-				var databases = mongo.getDBNames();
-			}catch(e){
-				// we probably do not have permissions to do this. continue with only the database we authenticated upon
-				var databases = [db];
-			}
-			var listItem = $('<li class="collapsed"><span class="foldIcon">&nbsp;</span><span class="icon">&nbsp;</span><span class="listItem"></span><div class="selectionIndicator"></div></li>');
+			self.state.connections.push({mongo: mongo, info: {
+															hostname: hostname,
+															databaseName: database,
+															database: db,
+															username: username,
+															openedTabs: []
+														}});
 
-			var serverItem = listItem.clone().addClass("server");
-			var databaseItems = $("<ul></ul>");
+			self.uiElements.sideBar.append($("<li class='collapsed server' />"));
+			refreshConnection(self, self.state.connections.length - 1);
 
-			var systemItem = listItem.clone().addClass("folder");
-			var systemDatabases = $("<ul></ul>");
-			systemItem.append(systemDatabases);
-			systemItem.find(".listItem").text("System");
-
-			databaseItems.append(systemItem);
-
-			var serverText = username + (username !== ""?"@" : "") + hostname + " (" + database + ")";
-			serverItem.find(".listItem").text(serverText);
-			serverItem.append(databaseItems);
-
-			//here we will store all tab ids ever opened from this connection
-			mongo.openedTabs = []
-
-			for(var i=0; i<databases.length; i++){
-				var databaseName = databases[i];
-				var dbItem = listItem.clone().addClass("database");
-				var collectionsFolder = listItem.clone().addClass("folder");
-				var foldersInDB = $("<ul></ul>");
-				var collectionItems = $("<ul></ul>");
-
-				dbItem.find(".listItem").text(databaseName);
-				collectionsFolder.find(".listItem").text("Collections");
-
-				collectionsFolder.append(collectionItems);
-				foldersInDB.append(collectionsFolder);
-				dbItem.append(foldersInDB);
-
-				if(databaseName === "admin" || databaseName === "local")
-					systemDatabases.append(dbItem);
-				else
-					databaseItems.append(dbItem);
-
-				var collections = mongo.getDB(databaseName).getCollectionNames();
-
-				for(var j=0; j<collections.length; j++){
-					var collection = collections[j];
-
-					var collItem = listItem.clone().addClass("collection");
-					collItem.find(".listItem").text(collection);
-					collItem.on("dblclick", (function(mongo, databaseName, collection){
-						return function(){
-							var newTabId = addTab(self, mongo.getDB(databaseName), collection);
-							mongo.openedTabs.push(newTabId);
-						};
-					})(mongo, databaseName, collection));
-					collectionItems.append(collItem);
-				}
-			}
-
-			self.uiElements.sideBar.append(serverItem);
 			return true;
 		}catch(e){
 			openDialog(self, "showMessage", "Could not connect", e.toString(), "error");
@@ -535,15 +483,89 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 	 * @param {MongoBrowser} self  - Please see Class/Namespace description!
 	 * @param {number} connectionNumber - the index of the connection to close in state.connections or the sidebar
 	 * @memberof MongoBrowser#
+	 * TODO: This and refreshConnection could be refactored into a class
 	 */
 	function closeConnection(self, connectionNumber){
 		var connection = self.state.connections[connectionNumber];
-		for(var i = 0; i < connection.openedTabs.length; i++){
-			var tabId = connection.openedTabs[i];
+		for(var i = 0; i < connection.info.openedTabs.length; i++){
+			var tabId = connection.info.openedTabs[i];
 			self.uiElements.tabs.container.find("[aria-controls='" + tabId + "']").find(".closeButton").click();
 		}
 		self.uiElements.sideBar.find(".server").eq(connectionNumber).remove();
 		self.state.connections.splice(connectionNumber, 1);
+	}
+
+	/**
+	 * Refreshes the n-th connection in this' mongobrowsers state.connections. This corresponds to the n-th top-level
+	 * item in the sidebar. This gets the databases from the server and puts them in the sidebar.
+	 * @param {MongoBrowser} self  - Please see Class/Namespace description!
+	 * @param {number} connectionNumber - the index of the connection to close in state.connections or the sidebar
+	 * @memberof MongoBrowser#
+	 * TODO: This and closeConnection could be refactored into a class
+	 */
+	function refreshConnection(self, connectionNumber){
+		var mongo = self.state.connections[connectionNumber].mongo;
+		var info = self.state.connections[connectionNumber].info;
+		try {
+			var databases = mongo.getDBNames();
+		}catch(e){
+			// we probably do not have permissions to do this. continue with only the database we authenticated upon
+			var databases = [info.database];
+		}
+
+		var listItem = $('<li class="collapsed"><span class="foldIcon">&nbsp;</span><span class="icon">&nbsp;</span><span class="listItem"></span><div class="selectionIndicator"></div></li>');
+		var serverItem = listItem.clone().addClass("server");
+		var databaseItems = $("<ul></ul>");
+
+		var systemItem = listItem.clone().addClass("folder");
+		var systemDatabases = $("<ul></ul>");
+		systemItem.append(systemDatabases);
+		systemItem.find(".listItem").text("System");
+
+		databaseItems.append(systemItem);
+
+		var serverText = info.username + (info.username !== ""?"@" : "") + info.hostname + " (" + info.databaseName + ")";
+		serverItem.find(".listItem").text(serverText);
+		serverItem.append(databaseItems);
+
+		for(var i=0; i<databases.length; i++){
+			var databaseName = databases[i];
+			var dbItem = listItem.clone().addClass("database");
+			var collectionsFolder = listItem.clone().addClass("folder");
+			var foldersInDB = $("<ul></ul>");
+			var collectionItems = $("<ul></ul>");
+
+			dbItem.find(".listItem").text(databaseName);
+			collectionsFolder.find(".listItem").text("Collections");
+
+			collectionsFolder.append(collectionItems);
+			foldersInDB.append(collectionsFolder);
+			dbItem.append(foldersInDB);
+
+			if(databaseName === "admin" || databaseName === "local")
+				systemDatabases.append(dbItem);
+			else
+				databaseItems.append(dbItem);
+
+			var collections = mongo.getDB(databaseName).getCollectionNames();
+
+			for(var j=0; j<collections.length; j++){
+				var collection = collections[j];
+
+				var collItem = listItem.clone().addClass("collection");
+				collItem.find(".listItem").text(collection);
+				collItem.on("dblclick", (function(mongo, databaseName, collection, info){
+					return function(){
+						var newTabId = addTab(self, mongo.getDB(databaseName), collection);
+						info.openedTabs.push(newTabId);
+					};
+				})(mongo, databaseName, collection, info));
+				collectionItems.append(collItem);
+			}
+		}
+
+
+		self.uiElements.sideBar.find(".server").eq(connectionNumber).replaceWith(serverItem);
 	}
 
 	function option(self, option, value){
@@ -578,7 +600,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 
 	var TabFactory = MongoBrowserNS.TabFactory;
 
-	var guiCommands = MongoBrowserNS.getGuiCommands(openDialog, getCurrentTab, testConnection);
+	var guiCommands = MongoBrowserNS.getGuiCommands(openDialog, getCurrentTab, testConnection, refreshConnection);
 	var createRootElement = guiCommands.createRootElement;
 	var createDialogs = guiCommands.createDialogs;
 	var createTabEnvironment = guiCommands.createTabEnvironment;
