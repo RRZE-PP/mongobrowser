@@ -390,7 +390,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 								callback: (function(collection){
 									return function(){
 										if(confirm("Do you really want to drop collection " + collection + "?")){
-											collection.drop();
+											try {
+												collection.drop();
+											}catch(e){
+												if(e instanceof MongoNS.DatabaseConnectionError){
+													self.openDialog("showMessage", "Warning", "Could not execute: " + e);
+												}else{
+													throw e;
+												}
+											}
 											refreshConnection(self, connectionNumber);
 										}
 									}
@@ -402,7 +410,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 									return function(){
 										var newName = prompt("Please enter a name for the new collection:");
 										if(newName){
-											collection.copyTo(newName);
+											try{
+												collection.copyTo(newName);
+											}catch(e){
+												if(e instanceof MongoNS.DatabaseConnectionError){
+													self.openDialog("showMessage", "Warning", "Could not execute: " + e);
+												}else{
+													throw e;
+												}
+											}
 											refreshConnection(self, connectionNumber);
 										}
 									}
@@ -414,7 +430,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 									return function(){
 										var newName = prompt("Please enter a new name for the collection:");
 										if(newName){
-											collection.renameCollection(newName);
+											try{
+												collection.renameCollection(newName);
+											}catch(e){
+												if(e instanceof MongoNS.DatabaseConnectionError){
+													self.openDialog("showMessage", "Warning", "Could not execute: " + e);
+												}else{
+													throw e;
+												}
+											}
 											refreshConnection(self, connectionNumber);
 										}
 									}
@@ -446,7 +470,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 								return function(){
 									var newName = prompt("Please enter a name for the new collection:");
 									if(newName){
-										db.createCollection(newName);
+										try{
+											db.createCollection(newName);
+										}catch(e){
+											if(e instanceof MongoNS.DatabaseConnectionError){
+												self.openDialog("showMessage", "Warning", "Could not execute: " + e);
+											}else{
+												throw e;
+											}
+										}
 										refreshConnection(self, connectionNumber);
 									}
 								}
