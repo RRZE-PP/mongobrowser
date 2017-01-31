@@ -445,6 +445,15 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 								})(mongo.getDB(databaseName).getCollection(collection))
 							},
 						"sep1": "---------",
+						"insertdoc": {
+								name: "Insert Document",
+								callback: (function(db, collection){
+									return function(){
+						            	openDialog(self, "insertDocument", db, collection);
+									}
+								})(mongo.getDB(databaseName), collection)
+							},
+						"sep2": "---------",
 						"statistics": {
 								name: "Statistics",
 								callback: (function(mongo, databaseName, collection){
