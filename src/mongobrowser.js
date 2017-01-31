@@ -411,7 +411,7 @@ window.MongoBrowserNS = (function(MongoBrowserNS){
 										var newName = prompt("Please enter a name for the new collection:");
 										if(newName){
 											try{
-												collection.copyTo(newName);
+												collection.aggregate([ { $match: {} }, { $out: newName } ]);
 											}catch(e){
 												if(e instanceof MongoNS.DatabaseConnectionError){
 													self.openDialog("showMessage", "Warning", "Could not execute: " + e);
